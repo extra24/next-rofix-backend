@@ -1,18 +1,6 @@
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-  api-docs:
-    path: /api-docs
-
-server:
-  port: 8080
-
 spring:
-  datasource:
-    url: jdbc:mysql://next-db.c74828wmikhx.ap-northeast-2.rds.amazonaws.com:3306/rofix?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: admin
-    password: :3M]x0D?29CA1t3mu<c~3|!PhCTI
+  profiles:
+    active: local # 여기서 값 설정 local(로컬 테스트) , prod(배포용)
   jpa:
     defer-data-source-initialization: true
     hibernate:
@@ -21,5 +9,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        default_schema: next
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+server:
+  port: 8080
