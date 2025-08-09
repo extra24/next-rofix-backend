@@ -40,9 +40,15 @@ public class User {
     private List<Clothing> clothes;
 
     // Cody와 관계
+    @OneToMany(mappedBy = "user")
+    private List<Cody> cody;
 
     // Comments와 관계
+    @OneToMany(mappedBy = "user")
+    private List<Comment> comments;
 
     // Likes와 관계
+    @OneToMany(mappedBy = "user")
+    private List<Like> likes;
 
 }

@@ -22,6 +22,6 @@ public class CodyClothes {
     private Cody cody;
 
     @ManyToOne
-    @JoinColumn(name = "cloth_id")
+    @JoinColumn(name = "clothing_id")
     private Clothing cloth;
 }
