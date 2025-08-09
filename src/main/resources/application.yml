@@ -1,0 +1,20 @@
+spring:
+  profiles:
+    active: local # 여기서 값 설정 local(로컬 테스트) , prod(배포용)
+  jpa:
+    defer-data-source-initialization: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+server:
+  port: 8080
