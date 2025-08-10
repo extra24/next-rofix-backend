@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,10 +47,11 @@ public class Clothing {
     @Column
     private String description;
 
+    @CreationTimestamp
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     // Cody_Clothes와의 관계 1:N
-    @OneToMany(mappedBy = "cloth")
+    @OneToMany(mappedBy = "clothing")
     private List<CodyClothes> codyClothes;
 }
