@@ -10,6 +10,14 @@ spring:
       hibernate:
         format_sql: true
 
+aws:
+  s3:
+    bucket: jaden-firehose-bucket     # 여기에 버킷 이름
+  region:
+    static: ap-northeast-2     # 리전
+  stack:
+    auto: false
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

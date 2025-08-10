@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,8 +34,12 @@ public class Clothing {
     @Column(nullable = false)
     private String color;
 
-    @Column(nullable = false, name = "image_url")
+    @Column(name = "image_url")
     private String imageUrl;
+
+    // S3 객체 key (식별용)
+    @Column(name = "image_key")
+    private String imageKey;
 
     @Column
     private String brand;
@@ -45,10 +50,11 @@ public class Clothing {
     @Column
     private String description;
 
-    @Column(nullable = false, name = "created_at")
+    @CreationTimestamp
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     // Cody_Clothes와의 관계 1:N
-    @OneToMany(mappedBy = "cloth")
+    @OneToMany(mappedBy = "clothing")
     private List<CodyClothes> codyClothes;
 }
