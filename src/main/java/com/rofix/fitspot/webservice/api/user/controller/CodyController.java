@@ -18,10 +18,8 @@ public class CodyController {
     @Autowired
     private CodyService codyService;
 
-    /**
-     * 코디 검색 (GET 방식)
-     * GET /api/cody/search?searchText=텍스트&searchScope=title&category=상의&sortBy=latest
-     */
+    //코디 검색 (GET 방식)
+    //GET /api/cody/search?searchText=텍스트&searchScope=title&category=상의&sortBy=latest
     @GetMapping("/search")
     public ResponseEntity<List<CodySearchResult>> searchCodies(
             @RequestParam(required = false) String searchText,
@@ -42,9 +40,7 @@ public class CodyController {
         return ResponseEntity.ok(results);
     }
 
-    /**
-     * POST 방식의 코디 검색 (복잡한 검색 조건을 위해)
-     */
+    //POST 방식의 코디 검색 (복잡한 검색 조건을 위해)
     @PostMapping("/search")
     public ResponseEntity<List<CodySearchResult>> searchCodiesPost(
             @RequestBody CodySearchRequest searchRequest
@@ -58,18 +54,14 @@ public class CodyController {
         return ResponseEntity.ok(results);
     }
 
-    /**
-     * 사용 가능한 카테고리 목록 조회 (코디에 포함된 옷들의 카테고리)
-     */
+    //사용 가능한 카테고리 목록 조회 (코디에 포함된 옷들의 카테고리)
     @GetMapping("/search/categories")
     public ResponseEntity<List<String>> getAvailableCategories() {
         List<String> categories = codyService.getAvailableCategories();
         return ResponseEntity.ok(categories);
     }
 
-    /**
-     * 코디 상세 정보 조회
-     */
+    //코디 상세 정보 조회
     @GetMapping("/{codyId}")
     public ResponseEntity<CodySearchResult> getCodyDetail(@PathVariable Long codyId) {
         CodySearchResult detail = codyService.getCodyDetail(codyId);
@@ -80,5 +72,5 @@ public class CodyController {
 
         return ResponseEntity.ok(detail);
     }
-    
+
 }

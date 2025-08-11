@@ -21,11 +21,10 @@ public class CodyService {
     @Autowired
     private CodyRepository codyRepository;
 
-    /**
-     * Cody를 검색합니다.
-     * @param searchRequest 검색 조건
-     * @return 검색된 코디 목록
-     */
+
+     //Cody를 검색
+     //@param searchRequest 검색 조건
+     //@return 검색된 코디 목록
     public List<CodySearchResult> searchCodies(CodySearchRequest searchRequest) {
         log.info("코디 검색 시작 - 검색텍스트: {}, 범위: {}, 카테고리: {}, 정렬: {}",
                 searchRequest.getSearchText(), searchRequest.getSearchScope(),
@@ -34,19 +33,17 @@ public class CodyService {
         List<Object[]> rawResults = getSearchResults(searchRequest);
         List<CodySearchResult> results = convertToSearchResults(rawResults);
 
-        // 각 코디에 포함된 옷들 정보 추가
+        //각 코디에 포함된 옷들 정보 추가
         results = addClothingInfo(results);
 
-        // 정렬 적용
+        //정렬 적용
         results = applySorting(results, searchRequest.getSortBy());
 
         log.info("검색 완료 - 결과 개수: {}", results.size());
         return results;
     }
 
-    /**
-     * 검색 범위에 따라 적절한 쿼리를 실행합니다.
-     */
+    //검색 범위에 따라 적절한 쿼리를 실행
     private List<Object[]> getSearchResults(CodySearchRequest searchRequest) {
         String searchText = searchRequest.getSearchText();
         String category = searchRequest.getCategory();
@@ -63,9 +60,7 @@ public class CodyService {
         }
     }
 
-    /**
-     * 쿼리 결과를 CodySearchResult로 변환합니다.
-     */
+    //쿼리 결과를 CodySearchResult로 변환
     private List<CodySearchResult> convertToSearchResults(List<Object[]> rawResults) {
         List<CodySearchResult> results = new ArrayList<>();
 
@@ -81,9 +76,7 @@ public class CodyService {
         return results;
     }
 
-    /**
-     * 각 코디에 포함된 옷들의 정보를 추가합니다.
-     */
+    //각 코디에 포함된 옷들의 정보를 추가
     private List<CodySearchResult> addClothingInfo(List<CodySearchResult> results) {
         for (CodySearchResult result : results) {
             List<Object> clothingObjects = codyRepository.findClothingsByCodyId(result.getCodyId());
@@ -110,9 +103,7 @@ public class CodyService {
         return results;
     }
 
-    /**
-     * 정렬 기준에 따라 결과를 정렬합니다.
-     */
+    //정렬 기준에 따라 결과를 정렬
     private List<CodySearchResult> applySorting(List<CodySearchResult> results, String sortBy) {
         switch (sortBy) {
             case "alphabetical":
@@ -131,26 +122,22 @@ public class CodyService {
         }
     }
 
-    /**
-     * 코디에 포함된 옷들의 카테고리 목록을 조회합니다.
-     */
+    //코디에 포함된 옷들의 카테고리 목록을 조회
     public List<String> getAvailableCategories() {
         return codyRepository.findDistinctClothingCategories();
     }
 
-    /**
-     * 특정 코디의 상세 정보를 조회합니다.
-     */
+    //특정 코디의 상세 정보를 조회
     public CodySearchResult getCodyDetail(Long codyId) {
         return codyRepository.findById(codyId)
                 .map(cody -> {
-                    // 좋아요 수와 댓글 수 계산
+                    //좋아요 수와 댓글 수 계산
                     long likeCount = cody.getLikes() != null ? cody.getLikes().size() : 0;
                     long commentCount = cody.getComments() != null ? cody.getComments().size() : 0;
 
                     CodySearchResult result = new CodySearchResult(cody, likeCount, commentCount);
 
-                    // 포함된 옷들 정보 추가
+                    //포함된 옷들 정보 추가
                     List<CodySearchResult> resultList = List.of(result);
                     resultList = addClothingInfo(resultList);
 
