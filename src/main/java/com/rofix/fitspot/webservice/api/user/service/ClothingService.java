@@ -64,4 +64,5 @@ public class ClothingService {
             clothingRepository.deleteById(clothingId);
         });
     }
+
 }

@@ -47,4 +47,5 @@ public class ClothingController {
         clothingService.deleteClothing(clothingId);
         return ResponseEntity.noContent().build();
     }
+
 }
