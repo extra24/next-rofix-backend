@@ -34,7 +34,7 @@ public class Clothing {
     @Column(nullable = false)
     private String color;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", length = 1024)
     private String imageUrl;
 
     // S3 객체 key (식별용)
@@ -45,7 +45,7 @@ public class Clothing {
     private String brand;
 
     @Column
-    private String season;
+    private String weather;
 
     @Column
     private String description;

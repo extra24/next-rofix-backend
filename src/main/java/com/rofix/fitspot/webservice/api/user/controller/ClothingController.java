@@ -1,5 +1,7 @@
 package com.rofix.fitspot.webservice.api.user.controller;
 
+import com.rofix.fitspot.webservice.api.user.dto.ClothingDTO;
+import com.rofix.fitspot.webservice.api.user.dto.ClothingRequestDTO;
 import com.rofix.fitspot.webservice.api.user.entity.Clothing;
 import com.rofix.fitspot.webservice.api.user.service.ClothingService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,21 +25,21 @@ public class ClothingController {
 
     // 전체 옷 조회
     @GetMapping
-    public List<Clothing> getAllClothes() {return clothingService.getAllClothes();}
+    public List<ClothingDTO> getAllClothes() {return clothingService.getAllClothes();}
 
     // userId 별 옷 조회
     @GetMapping("/user/{userId}")
-    public List<Clothing> getAllClothes (@PathVariable Long userId) {
+    public List<ClothingDTO> getAllClothes (@PathVariable Long userId) {
         return clothingService.getClothesByUserID(userId);
     }
 
     // 옷 생성
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Clothing> createClothing(
-            @RequestPart("clothing") Clothing clothing,
+    public ResponseEntity<ClothingDTO> createClothing(
+            @RequestPart("clothing") ClothingRequestDTO dto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
-        Clothing saved = clothingService.createClothing(clothing, file);
+        ClothingDTO saved = clothingService.createClothing(dto, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 

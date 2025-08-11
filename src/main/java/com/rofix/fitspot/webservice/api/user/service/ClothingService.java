@@ -1,6 +1,10 @@
 package com.rofix.fitspot.webservice.api.user.service;
 
+import com.rofix.fitspot.webservice.api.user.dto.ClothingDTO;
+import com.rofix.fitspot.webservice.api.user.dto.ClothingMapper;
+import com.rofix.fitspot.webservice.api.user.dto.ClothingRequestDTO;
 import com.rofix.fitspot.webservice.api.user.entity.Clothing;
+import com.rofix.fitspot.webservice.api.user.entity.User;
 import com.rofix.fitspot.webservice.api.user.repository.ClothingRepository;
 import com.rofix.fitspot.webservice.aws.S3Service;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -22,23 +28,34 @@ public class ClothingService {
     private S3Service s3Service;
 
     // 옷 전체 조회
-    public List<Clothing> getAllClothes() {return clothingRepository.findAll();}
+    public List<ClothingDTO> getAllClothes() {
+        return clothingRepository.findAll()
+                .stream()
+                .map(ClothingMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 
     // userId 별 옷 조회
-    public List<Clothing> getClothesByUserID(Long userId) {
-        return clothingRepository.findByUserUserId(userId);
+    public List<ClothingDTO> getClothesByUserID(Long userId) {
+        return clothingRepository.findByUserUserId(userId)
+                .stream()
+                .map(ClothingMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     // 옷 생성
-    public Clothing createClothing(Clothing clothing, MultipartFile file) throws IOException {
+    public ClothingDTO createClothing(ClothingRequestDTO dto, MultipartFile file) throws IOException {
         String key = null;
         try {
+            Clothing clothing = ClothingMapper.toEntity(dto);
+
             if (file != null && !file.isEmpty()) {
-                key = s3Service.uploadFile(file, clothing.getUser().getUserId());
+                key = s3Service.uploadFile(file, dto.getUserId());
                 clothing.setImageKey(key);
                 clothing.setImageUrl(s3Service.getUrlForKey(key));
             }
-            return clothingRepository.save(clothing);
+            Clothing saved = clothingRepository.save(clothing);
+            return ClothingMapper.toDTO(saved);
         } catch (Exception e) {
             if (key != null) {
                 try {
