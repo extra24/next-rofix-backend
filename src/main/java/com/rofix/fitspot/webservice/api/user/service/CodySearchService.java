@@ -92,7 +92,7 @@ public class CodySearchService {
                                 clothing.getColor(),
                                 clothing.getImageUrl(),
                                 clothing.getBrand(),
-                                clothing.getSeason()
+                                clothing.getWeather()
                         );
                     })
                     .collect(Collectors.toList());
