@@ -14,12 +14,8 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class LoginController {
 
-    private final UserService userService;
-
     @Autowired
-    public LoginController(UserService userService) {
-        this.userService = userService;
-    }
+    private UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<?>  login(@RequestBody Map<String, String> payload, HttpServletRequest request) {
@@ -28,9 +24,9 @@ public class LoginController {
             return ResponseEntity.badRequest().body("이메일이 누락되었습니다.");
         }
         HttpSession session = request.getSession();
-        userService.handleUserLogin(email, session);
+        User user = userService.handleUserLogin(email, session);
 
-        return ResponseEntity.ok("로그인 성공!");
+        return ResponseEntity.ok("로그인 성공!" + user);
     }
 
     // 로그인 상태를 확인하는 API (프런트엔드에서 세션 유효성 체크용)
