@@ -11,7 +11,6 @@ public class CodyRecommendationRequest {
     private String personalColor;  // WARM, COOL 등
     private String weather;        // SUNNY, RAIN, COLD, HOT 등
     private Long userId;           // 사용자 ID
-    private Integer temp;          // 온도 (OUTER 규칙용)
     private Boolean force;         // 강제 새 조합 생성 여부
 
     // 기본값 설정

@@ -35,8 +35,8 @@ public class CodyRecommendationService {
      * 코디 추천 메인 메서드
      */
     public CodyRecommendationResponse recommendCody(CodyRecommendationRequest request) {
-        log.info("코디 추천 시작 - 사용자: {}, 날씨: {}, 퍼스널컬러: {}, 온도: {}",
-                request.getUserId(), request.getWeather(), request.getPersonalColor(), request.getTemp());
+        log.info("코디 추천 시작 - 사용자: {}, 날씨: {}, 퍼스널컬러: {}",
+                request.getUserId(), request.getWeather(), request.getPersonalColor());
 
         try {
             // 1. 기존 코디가 있는지 확인 (force=false인 경우)
@@ -92,7 +92,7 @@ public class CodyRecommendationService {
         candidates.bottoms = getFilteredClothes(request, "BOTTOM");
 
         // OUTER 카테고리 의상 조회 (조건부)
-        if (shouldIncludeOuter(request.getTemp(), request.getWeather())) {
+        if (shouldIncludeOuter(request.getWeather())) {
             candidates.outers = getFilteredClothes(request, "OUTER");
         }
 
@@ -155,21 +155,9 @@ public class CodyRecommendationService {
     /**
      * OUTER 포함 여부 결정
      */
-    private boolean shouldIncludeOuter(Integer temp, String weather) {
-        if (temp == null) return false;
-
-        // 15도 미만 또는 비 -> OUTER 필수
-        if (temp < 15 || "RAIN".equals(weather)) {
-            return true;
-        }
-
-        // 24도 이상 -> OUTER 제외
-        if (temp >= 24) {
-            return false;
-        }
-
-        // 15-23도 구간 -> OUTER 있으면 포함
-        return true;
+    private boolean shouldIncludeOuter(String weather) {
+        // 온도 고려 없이 날씨만으로 판단
+        return "RAIN".equalsIgnoreCase(weather) || "COLD".equalsIgnoreCase(weather);
     }
 
     /**
@@ -179,8 +167,8 @@ public class CodyRecommendationService {
                                                 CandidateClothes candidates) {
         List<Cody> generatedCodys = new ArrayList<>();
 
-        // 최대 3가지 조합 생성
-        int maxCombinations = Math.min(3, candidates.tops.size() * candidates.bottoms.size());
+        // 최대 6가지 조합 생성
+        int maxCombinations = Math.min(6, candidates.tops.size() * candidates.bottoms.size());
 
         for (int i = 0; i < maxCombinations && i < candidates.tops.size(); i++) {
             for (int j = 0; j < Math.min(2, candidates.bottoms.size()); j++) {
@@ -190,7 +178,7 @@ public class CodyRecommendationService {
                         ? candidates.outers.get(i) : null;
 
                 // 해시 생성으로 중복 확인
-                String hash = generateHash(request.getUserId(), request.getWeather(),
+                String hash = generateHash(request.getUserId(), request.getWeather(), request.getPersonalColor(),
                         Arrays.asList(top.getClothingId(), bottom.getClothingId(),
                                 outer != null ? outer.getClothingId() : null));
 
@@ -232,10 +220,10 @@ public class CodyRecommendationService {
         Cody savedCody = codyRepository.save(cody);
 
         // 코디-의상 관계 저장
-        saveCodyClothes(savedCody, top, "TOP");
-        saveCodyClothes(savedCody, bottom, "BOTTOM");
+        saveCodyClothes(cody, top);
+        saveCodyClothes(cody, bottom);
         if (outer != null) {
-            saveCodyClothes(savedCody, outer, "OUTER");
+            saveCodyClothes(cody, outer);
         }
 
         log.info("새 코디 생성 완료: {} - {}", savedCody.getCodyId(), savedCody.getTitle());
@@ -245,7 +233,7 @@ public class CodyRecommendationService {
     /**
      * 코디-의상 관계 저장
      */
-    private void saveCodyClothes(Cody cody, Clothing clothing, String category) {
+    private void saveCodyClothes(Cody cody, Clothing clothing) {
         CodyClothes codyClothes = new CodyClothes();
         codyClothes.setCody(cody);
         codyClothes.setClothing(clothing);
@@ -255,14 +243,14 @@ public class CodyRecommendationService {
     /**
      * 해시 생성
      */
-    private String generateHash(Long userId, String weather, List<Long> clothingIds) {
+    private String generateHash(Long userId, String weather, String personalColor, List<Long> clothingIds) {
         try {
             List<Long> sortedIds = clothingIds.stream()
                     .filter(Objects::nonNull)
                     .sorted()
                     .collect(Collectors.toList());
 
-            String input = userId + "|" + weather + "|" + sortedIds.toString();
+            String input = userId + "|" + weather + "|" + personalColor + "|" + clothingIds.toString();
 
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] hashBytes = md.digest(input.getBytes());
@@ -297,8 +285,9 @@ public class CodyRecommendationService {
      */
     private String generateDescription(Clothing top, Clothing bottom, Clothing outer, String weather) {
         StringBuilder desc = new StringBuilder();
-        desc.append(weather).append(" 날씨에 어울리는 ");
+        desc.append(getWeatherDescription(weather));
 
+        // 색상 조합
         Set<String> colors = new HashSet<>();
         colors.add(top.getColor());
         colors.add(bottom.getColor());
@@ -306,9 +295,21 @@ public class CodyRecommendationService {
             colors.add(outer.getColor());
         }
 
-        desc.append(String.join(", ", colors)).append(" 컬러 조합의 코디입니다.");
+        desc.append(" ").append(String.join(", ", colors)).append(" 컬러 조합의 코디입니다.");
 
         return desc.toString();
+    }
+
+    /**
+     * 날씨 설명 문구 반환
+     */
+    private String getWeatherDescription(String weather) {
+        switch (weather != null ? weather.toUpperCase() : "SUNNY") {
+            case "RAIN": return "비 오는 날씨에 적합한";
+            case "COLD": return "추운 날씨에 따뜻한";
+            case "HOT": return "더운 날씨에 시원한";
+            default: return "맑은 날씨에 어울리는";
+        }
     }
 
     /**
@@ -330,11 +331,10 @@ public class CodyRecommendationService {
         long likeCount = cody.getLikes() != null ? cody.getLikes().size() : 0;
 
         // 코디에 포함된 의상들 조회
-        List<Object> clothingObjects = codyRepository.findClothingsByCodyId(cody.getCodyId());
-        List<CodyRecommendationResponse.RecommendedCody.CodyItem> items = clothingObjects.stream()
-                .filter(obj -> obj instanceof Clothing)
-                .map(obj -> {
-                    Clothing clothing = (Clothing) obj;
+        List<CodyClothes> codyClothes = codyClothesRepository.findByCodyCodyId(cody.getCodyId());
+        List<CodyRecommendationResponse.RecommendedCody.CodyItem> items = codyClothes.stream()
+                .map(cc -> {
+                    Clothing clothing = cc.getClothing();
                     return new CodyRecommendationResponse.RecommendedCody.CodyItem(
                             clothing.getClothingId(),
                             clothing.getCategory(),

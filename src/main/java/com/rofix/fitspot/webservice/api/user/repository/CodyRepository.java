@@ -72,4 +72,3 @@ public interface CodyRepository extends JpaRepository<Cody, Long> {
     @Query("SELECT c FROM Cody c WHERE c.user.userId = :userId AND c.weather = :weather ORDER BY c.createdAt DESC")
     List<Cody> findByUserIdAndWeather(@Param("userId") Long userId, @Param("weather") String weather);
 }
-}

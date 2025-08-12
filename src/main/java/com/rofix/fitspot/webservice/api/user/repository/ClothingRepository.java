@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface ClothingRepository extends JpaRepository<Clothing, Long> {
     List<Clothing> findByUserUserId(Long userid);
+    List<Clothing> findByUserUserIdAndCategory(Long userId, String category);
+    List<Clothing> findByUserUserIdAndCategoryAndWeather(Long userId, String category, String weather);
 
     // 추천을 위한 의상 조회 (사용자별, 카테고리별, 날씨별)
     @Query("SELECT c FROM Clothing c " +

@@ -25,14 +25,13 @@ public class CodyRecommendationController {
             @PathVariable String weather,
             @RequestParam Long userId,
             @RequestParam(required = false) String personalColor,
-            @RequestParam(required = false) Integer temp,
             @RequestParam(defaultValue = "false") Boolean force
     ) {
-        log.info("날씨 기반 코디 추천 요청 - 날씨: {}, 사용자: {}, 퍼스널컬러: {}, 온도: {}, 강제생성: {}",
-                weather, userId, personalColor, temp, force);
+        log.info("날씨 기반 코디 추천 요청 - 날씨: {}, 사용자: {}, 퍼스널컬러: {}, 강제생성: {}",
+                weather, userId, personalColor, force);
 
         CodyRecommendationRequest request = new CodyRecommendationRequest(
-                personalColor, weather, userId, temp, force
+                personalColor, weather, userId, force
         );
 
         CodyRecommendationResponse response = codyRecommendationService.recommendCody(request);
