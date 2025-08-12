@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CodyRepository extends JpaRepository<Cody, Long> {
@@ -60,4 +61,14 @@ public interface CodyRepository extends JpaRepository<Cody, Long> {
             "JOIN Clothing cl ON cc.clothing.clothingId = cl.clothingId " +
             "WHERE c.codyId = :codyId")
     List<Object> findClothingsByCodyId(@Param("codyId") Long codyId);
+
+    //추천
+
+    // 해시로 기존 코디 조회 (중복 방지용)
+    @Query("SELECT c FROM Cody c WHERE c.hash = :hash")
+    Optional<Cody> findByHash(@Param("hash") String hash);
+
+    // 사용자와 날씨로 기존 코디 조회
+    @Query("SELECT c FROM Cody c WHERE c.user.userId = :userId AND c.weather = :weather ORDER BY c.createdAt DESC")
+    List<Cody> findByUserIdAndWeather(@Param("userId") Long userId, @Param("weather") String weather);
 }

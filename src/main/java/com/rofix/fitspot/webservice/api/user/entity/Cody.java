@@ -33,6 +33,14 @@ public class Cody {
     @Column
     private String weather;
 
+    @Column(unique = true)  //중복 방지용
+    private String hash;
+
+    // getter, setter 추가
+    public String getHash() { return hash; }
+    public void setHash(String hash) { this.hash = hash; }
+
+
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
