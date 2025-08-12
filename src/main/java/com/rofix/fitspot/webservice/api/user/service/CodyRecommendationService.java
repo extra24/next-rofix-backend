@@ -250,7 +250,7 @@ public class CodyRecommendationService {
                     .sorted()
                     .collect(Collectors.toList());
 
-            String input = userId + "|" + weather + "|" + personalColor + "|" + clothingIds.toString();
+            String input = userId + "|" + weather + "|" + personalColor + "|" + sortedIds.toString();
 
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] hashBytes = md.digest(input.getBytes());

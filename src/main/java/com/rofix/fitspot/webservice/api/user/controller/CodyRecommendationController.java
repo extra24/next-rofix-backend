@@ -18,7 +18,7 @@ public class CodyRecommendationController {
 
     /**
      * 날씨 기반 코디 추천 (GET 방식)
-     * GET /api/cody/weather/{weather}?userId=1&personalColor=WARM&temp=18&force=false
+     * GET /api/cody/weather/{weather}?userId=1&personalColor=WARM&force=false
      */
     @GetMapping("/weather/{weather}")
     public ResponseEntity<CodyRecommendationResponse> recommendCodyByWeather(
