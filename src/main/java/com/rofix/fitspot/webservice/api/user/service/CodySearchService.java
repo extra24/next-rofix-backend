@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class CodyService {
+public class CodySearchService {
 
     @Autowired
     private CodyRepository codyRepository;
@@ -92,7 +92,7 @@ public class CodyService {
                                 clothing.getColor(),
                                 clothing.getImageUrl(),
                                 clothing.getBrand(),
-                                clothing.getSeason()
+                                clothing.getWeather()
                         );
                     })
                     .collect(Collectors.toList());
