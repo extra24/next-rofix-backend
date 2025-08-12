@@ -11,8 +11,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
@@ -20,6 +24,7 @@ import java.util.UUID;
 @Slf4j
 public class S3Service{
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
     @Value("${aws.s3.bucket}")
     private String bucket;
@@ -39,9 +44,14 @@ public class S3Service{
     }
 
     public String getUrlForKey(String key) {
-        return s3Client.utilities()
-                .getUrl(GetUrlRequest.builder().bucket(bucket).key(key).build())
-                .toString();
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10)) // URL 유효기간
+                .getObjectRequest(r -> r.bucket(bucket).key(key))
+                .build();
+
+        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+        log.info("Get URL For presigned url");
+        return presignedRequest.url().toString();
     }
 
     public void deleteFile(String key) {
