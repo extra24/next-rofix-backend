@@ -23,9 +23,6 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, name = "ip_address")
-    private String ipAddress;
-
     @Column(nullable = false, unique = true)
     private String nickname;
 
