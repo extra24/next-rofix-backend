@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class CodyService {
+public class CodySearchService {
 
     @Autowired
     private CodyRepository codyRepository;
