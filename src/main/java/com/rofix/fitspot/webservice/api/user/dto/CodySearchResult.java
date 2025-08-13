@@ -33,7 +33,7 @@ public class CodySearchResult {
         private String color;
         private String imageUrl;
         private String brand;
-        private String season;
+        private String weather;
     }
 
     // Cody 엔티티로부터 생성하는 생성자 (clothings는 별도 설정)
