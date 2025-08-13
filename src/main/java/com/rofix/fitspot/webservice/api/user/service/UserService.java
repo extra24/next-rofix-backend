@@ -7,7 +7,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +28,6 @@ public class UserService {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setNickname("user_" + UUID.randomUUID().toString().substring(0, 8));
-                    newUser.setCreatedAt(LocalDateTime.now());
                     return userRepository.save(newUser); // DB에 저장하고 반환
                 });
 
