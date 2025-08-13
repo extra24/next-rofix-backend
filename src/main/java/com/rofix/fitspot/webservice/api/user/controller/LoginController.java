@@ -1,7 +1,7 @@
 package com.rofix.fitspot.webservice.api.user.controller;
 
 import com.rofix.fitspot.webservice.api.user.entity.User;
-import com.rofix.fitspot.webservice.api.user.entity.UserDTO;
+import com.rofix.fitspot.webservice.api.user.dto.UserDTO;
 import com.rofix.fitspot.webservice.api.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -56,7 +56,6 @@ public class LoginController {
         try {
             // 세션에서 'user' 객체를 가져옴
             Object userObj = session.getAttribute("user");
-            log.info("세션에서 user 객체 확인 : {}", userObj);
 
             // user 객체가 존재하고, 타입이 User인지 확인
             if (userObj instanceof User user) {

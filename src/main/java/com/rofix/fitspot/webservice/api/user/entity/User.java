@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -36,18 +37,22 @@ public class User {
 
     // Clothes와 관계 1:N
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<Clothing> clothes;
 
     // Cody와 관계
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<Cody> cody;
 
     // Comments와 관계
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<Comment> comments;
 
     // Likes와 관계
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<Like> likes;
 
 }
