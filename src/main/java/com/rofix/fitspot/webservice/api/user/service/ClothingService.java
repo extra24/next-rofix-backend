@@ -6,33 +6,30 @@ import com.rofix.fitspot.webservice.api.user.dto.ClothingRequestDTO;
 import com.rofix.fitspot.webservice.api.user.entity.Clothing;
 import com.rofix.fitspot.webservice.api.user.entity.User;
 import com.rofix.fitspot.webservice.api.user.repository.ClothingRepository;
+import com.rofix.fitspot.webservice.api.user.repository.UserRepository;
 import com.rofix.fitspot.webservice.aws.S3Service;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ClothingService {
 
-    @Autowired
-    private ClothingRepository clothingRepository;
-
-    @Autowired
-    private S3Service s3Service;
+    private final ClothingRepository clothingRepository;
+    private final S3Service s3Service;
+    private final UserRepository userRepository;
 
     // 옷 전체 조회
     public List<ClothingDTO> getAllClothes() {
         return clothingRepository.findAll()
                 .stream()
                 .map(ClothingMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // userId 별 옷 조회
@@ -40,17 +37,25 @@ public class ClothingService {
         return clothingRepository.findByUserUserId(userId)
                 .stream()
                 .map(ClothingMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // 옷 생성
-    public ClothingDTO createClothing(ClothingRequestDTO dto, MultipartFile file) throws IOException {
+    public ClothingDTO createClothing(ClothingRequestDTO dto, MultipartFile file, Long userId) throws IOException {
         String key = null;
         try {
+            // 1. userId로 User 엔티티를 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            // 2. Mapper를 사용하여 엔티티 생성 (User 정보는 아직 없음)
             Clothing clothing = ClothingMapper.toEntity(dto);
 
+            // 3. 조회한 User 객체를 Clothing 엔티티에 직접 설정
+            clothing.setUser(user);
+
             if (file != null && !file.isEmpty()) {
-                key = s3Service.uploadFile(file, dto.getUserId());
+                key = s3Service.uploadFile(file, userId);
                 clothing.setImageKey(key);
                 clothing.setImageUrl(s3Service.getUrlForKey(key));
             }
