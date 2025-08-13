@@ -49,24 +49,16 @@ public class LoginController {
     // 로그인 상태를 확인하는 API (프런트엔드에서 세션 유효성 체크용)
     @GetMapping("/check")
     public ResponseEntity<Map<String, Object>> checkLogin(HttpSession session) {
-        try {
-            // 세션에서 'user' 객체를 가져옴
-            Object userObj = session.getAttribute("user");
+        Object userObj = session.getAttribute("user");
 
-            // user 객체가 존재하고, 타입이 User인지 확인
-            if (userObj instanceof User user) {
-                // Mapper 사용해서 User 객체를 DTO로 변환
-                UserDTO userDTO = UserMapper.toDTO(user);
-
-                return ResponseEntity.ok(Map.of("user", userDTO));
-            } else {
-                // user 객체가 없거나 유효하지 않으면 401 Unauthorized 응답 반환
-                return ResponseEntity.status(401).body(Collections.singletonMap("user", null));
-            }
-        } catch (Exception e) {
-            // 예상치 못한 예외가 발생하면 로그를 남기고, 401 Unauthorized 응답 반환
-            log.error("세션 확인 중 예외 발생", e);
-            return ResponseEntity.status(401).body(Collections.singletonMap("user", null));
+        // user 객체가 존재하면
+        if (userObj instanceof User user) {
+            UserDTO userDTO = UserMapper.toDTO(user);
+            return ResponseEntity.ok(Map.of("user", userDTO));
+        } else {
+            // user 객체가 없으면, 401 대신 200 OK 응답을 보내고 user: null을 포함
+            // 콘솔에 401 에러 뜨는 것 방지
+            return ResponseEntity.ok(Collections.singletonMap("user", null));
         }
     }
 
