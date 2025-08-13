@@ -1,4 +1,4 @@
-package com.rofix.fitspot.webservice.api.user.entity;
+package com.rofix.fitspot.webservice.api.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
