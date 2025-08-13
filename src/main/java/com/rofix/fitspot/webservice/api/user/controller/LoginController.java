@@ -48,6 +48,10 @@ public class LoginController {
                 "message", "로그인 성공",
                 "user", dto
         ));
+        HttpSession session = request.getSession();
+        User user = userService.handleUserLogin(email, session);
+
+        return ResponseEntity.ok("로그인 성공!" + user);
     }
 
     // 로그인 상태를 확인하는 API (프런트엔드에서 세션 유효성 체크용)
