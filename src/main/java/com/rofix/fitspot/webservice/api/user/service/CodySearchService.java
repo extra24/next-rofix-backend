@@ -21,33 +21,42 @@ public class CodySearchService {
     @Autowired
     private CodyRepository codyRepository;
 
-
-     //Cody를 검색
-     //@param searchRequest 검색 조건
-     //@return 검색된 코디 목록
+    /**
+     * 코디를 검색
+     * @param searchRequest 검색 조건
+     * @return 검색된 코디 목록
+     */
     public List<CodySearchResult> searchCodies(CodySearchRequest searchRequest) {
-        log.info("코디 검색 시작 - 검색텍스트: {}, 범위: {}, 카테고리: {}, 정렬: {}",
+        log.info("=== 코디 검색 시작 ===");
+        log.info("검색텍스트: {}, 범위: {}, 카테고리(날씨): {}, 정렬: {}",
                 searchRequest.getSearchText(), searchRequest.getSearchScope(),
                 searchRequest.getCategory(), searchRequest.getSortBy());
 
         List<Object[]> rawResults = getSearchResults(searchRequest);
+        log.info("원본 검색 결과 개수: {}", rawResults.size());
+
         List<CodySearchResult> results = convertToSearchResults(rawResults);
 
-        //각 코디에 포함된 옷들 정보 추가
+        // 각 코디에 포함된 옷들 정보 추가
         results = addClothingInfo(results);
 
-        //정렬 적용
+        // 정렬 적용
         results = applySorting(results, searchRequest.getSortBy());
 
-        log.info("검색 완료 - 결과 개수: {}", results.size());
+        log.info("검색 완료 - 최종 결과 개수: {}", results.size());
         return results;
     }
 
-    //검색 범위에 따라 적절한 쿼리를 실행
+    /**
+     * 검색 범위에 따라 적절한 쿼리를 실행
+     */
     private List<Object[]> getSearchResults(CodySearchRequest searchRequest) {
         String searchText = searchRequest.getSearchText();
-        String category = searchRequest.getCategory();
+        String category = searchRequest.getCategory(); // 실제로는 weather 값
         String searchScope = searchRequest.getSearchScope();
+
+        log.info("쿼리 실행 - searchText: '{}', category(weather): '{}', scope: '{}'",
+                searchText, category, searchScope);
 
         switch (searchScope) {
             case "title":
@@ -60,7 +69,9 @@ public class CodySearchService {
         }
     }
 
-    //쿼리 결과를 CodySearchResult로 변환
+    /**
+     * 쿼리 결과를 CodySearchResult로 변환
+     */
     private List<CodySearchResult> convertToSearchResults(List<Object[]> rawResults) {
         List<CodySearchResult> results = new ArrayList<>();
 
@@ -69,6 +80,9 @@ public class CodySearchService {
             Long likeCount = (Long) row[1];
             Long commentCount = (Long) row[2];
 
+            log.debug("변환 중인 코디: ID={}, 제목='{}', 날씨='{}'",
+                    cody.getCodyId(), cody.getTitle(), cody.getWeather());
+
             CodySearchResult result = new CodySearchResult(cody, likeCount, commentCount);
             results.add(result);
         }
@@ -76,7 +90,9 @@ public class CodySearchService {
         return results;
     }
 
-    //각 코디에 포함된 옷들의 정보를 추가
+    /**
+     * 각 코디에 포함된 옷들의 정보를 추가
+     */
     private List<CodySearchResult> addClothingInfo(List<CodySearchResult> results) {
         for (CodySearchResult result : results) {
             List<Object> clothingObjects = codyRepository.findClothingsByCodyId(result.getCodyId());
@@ -103,7 +119,9 @@ public class CodySearchService {
         return results;
     }
 
-    //정렬 기준에 따라 결과를 정렬
+    /**
+     * 정렬 기준에 따라 결과를 정렬
+     */
     private List<CodySearchResult> applySorting(List<CodySearchResult> results, String sortBy) {
         switch (sortBy) {
             case "alphabetical":
@@ -122,22 +140,27 @@ public class CodySearchService {
         }
     }
 
-    //코디에 포함된 옷들의 카테고리 목록을 조회
+    /**
+     * 사용 가능한 날씨 카테고리 목록 조회 - 수정됨
+     */
     public List<String> getAvailableCategories() {
-        return codyRepository.findDistinctClothingCategories();
+        // 날씨 카테고리를 반환하도록 수정
+        return codyRepository.findDistinctWeatherCategories();
     }
 
-    //특정 코디의 상세 정보를 조회
+    /**
+     * 특정 코디의 상세 정보를 조회
+     */
     public CodySearchResult getCodyDetail(Long codyId) {
         return codyRepository.findById(codyId)
                 .map(cody -> {
-                    //좋아요 수와 댓글 수 계산
+                    // 좋아요 수와 댓글 수 계산
                     long likeCount = cody.getLikes() != null ? cody.getLikes().size() : 0;
                     long commentCount = cody.getComments() != null ? cody.getComments().size() : 0;
 
                     CodySearchResult result = new CodySearchResult(cody, likeCount, commentCount);
 
-                    //포함된 옷들 정보 추가
+                    // 포함된 옷들 정보 추가
                     List<CodySearchResult> resultList = List.of(result);
                     resultList = addClothingInfo(resultList);
 
