@@ -62,20 +62,4 @@ public class CodyRecommendationController {
 
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * 사용자별 추천 이력 조회 (선택 사항)
-     * GET /api/cody/user/{userId}/history
-     */
-    @GetMapping("/user/{userId}/history")
-    public ResponseEntity<?> getRecommendationHistory(
-            @PathVariable Long userId,
-            @RequestParam(required = false) String weather
-    ) {
-        // 이 기능은 필요시 추가 구현 가능
-        log.info("추천 이력 조회 요청 - 사용자: {}, 날씨: {}", userId, weather);
-
-        // 임시로 빈 응답 반환
-        return ResponseEntity.ok("추천 이력 기능은 추후 구현 예정입니다.");
-    }
 }
