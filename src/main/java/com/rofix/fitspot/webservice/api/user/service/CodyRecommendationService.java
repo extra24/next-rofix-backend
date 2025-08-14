@@ -4,8 +4,8 @@ import com.rofix.fitspot.webservice.api.user.dto.CodyRecommendationRequest;
 import com.rofix.fitspot.webservice.api.user.dto.CodyRecommendationResponse;
 import com.rofix.fitspot.webservice.api.user.entity.*;
 import com.rofix.fitspot.webservice.api.user.repository.ClothingRepository;
-import com.rofix.fitspot.webservice.api.user.repository.CodyRepository;
 import com.rofix.fitspot.webservice.api.user.repository.CodyClothesRepository;
+import com.rofix.fitspot.webservice.api.user.repository.CodyRepository;
 import com.rofix.fitspot.webservice.api.user.util.ColorMatchingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -220,10 +220,10 @@ public class CodyRecommendationService {
         Cody savedCody = codyRepository.save(cody);
 
         // 코디-의상 관계 저장
-        saveCodyClothes(cody, top);
-        saveCodyClothes(cody, bottom);
+        saveCodyClothes(savedCody, top);
+        saveCodyClothes(savedCody, bottom);
         if (outer != null) {
-            saveCodyClothes(cody, outer);
+            saveCodyClothes(savedCody, outer);
         }
 
         log.info("새 코디 생성 완료: {} - {}", savedCody.getCodyId(), savedCody.getTitle());
@@ -250,7 +250,7 @@ public class CodyRecommendationService {
                     .sorted()
                     .collect(Collectors.toList());
 
-            String input = userId + "|" + weather + "|" + personalColor + "|" + sortedIds.toString();
+            String input = userId + "|" + weather + "|" + personalColor + "|" + sortedIds;
 
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] hashBytes = md.digest(input.getBytes());
