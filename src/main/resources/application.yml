@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local # 여기서 값 설정 local(로컬 테스트) , prod(배포용)
+    active: prod # 여기서 값 설정 local(로컬 테스트) , prod(배포용)
   jpa:
     defer-data-source-initialization: true
     hibernate:
