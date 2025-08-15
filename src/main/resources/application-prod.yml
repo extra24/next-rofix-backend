@@ -1,0 +1,31 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cors:
+    allowed-origins: http://localhost:3000 # 추후에 배포 도메인으로 교체
+    allowed-methods: GET, POST, PUT, DELETE, OPTIONS
+
+  datasource:
+    url: jdbc:mysql://next-db.c74828wmikhx.ap-northeast-2.rds.amazonaws.com:3306/rofix?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: admin
+    password: :<~2?A3d?*r]Z$[w-mUh2O~(YkWR
+  jpa:
+    defer-data-source-initialization: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        default_schema: next
+
+  session:
+    store-type: redis
+
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT:6379}
+    ssl: true

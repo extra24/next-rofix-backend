@@ -1,0 +1,28 @@
+spring:
+  profiles:
+    active: prod # 여기서 값 설정 local(로컬 테스트) , prod(배포용)
+  jpa:
+    defer-data-source-initialization: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+aws:
+  s3:
+    bucket: fitspot-bucket     # 여기에 버킷 이름
+  region:
+    static: ap-northeast-2     # 리전
+  stack:
+    auto: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+server:
+  port: 8080
