@@ -42,49 +42,6 @@ public class UserService {
         return userRepository.findById(userId);
     }
 
-    // 닉네임 수정
-    public User updateNickname(Long userId, String newNickname) {
-        if (newNickname == null || newNickname.isEmpty()) {
-            throw new IllegalArgumentException("닉네임은 필수 입력 항목입니다.");
-        }
-
-        return userRepository.findById(userId)
-                .map(user -> {
-                    user.setNickname(newNickname);
-                    return userRepository.save(user);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-    }
-
-    // 퍼스널컬러만 업데이트
-    public User updatePersonalColor(Long userId, String newPersonalColor) {
-        if (newPersonalColor == null || newPersonalColor.isEmpty()) {
-            throw new IllegalArgumentException("퍼스널컬러는 필수 입력 항목입니다.");
-        }
-
-        return userRepository.findById(userId)
-                .map(user -> {
-                    user.setPersonalColor(newPersonalColor);
-                    return userRepository.save(user);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-    }
-
-    // 이메일만 수정
-    public User updateEmail(Long userId, String newEmail) {
-        if (newEmail == null || newEmail.isEmpty()) {
-            throw new IllegalArgumentException("닉네임은 필수 입력 항목입니다.");
-        }
-
-        return userRepository.findById(userId)
-                .map(user -> {
-                    user.setEmail(newEmail);
-                    return userRepository.save(user);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-    }
-
     // 회원 정보 수정 (이메일, 닉네임, 퍼스널컬러)
     public User updateUser(Long userId, String email, String nickname, String personalColor) {
         return userRepository.findById(userId)

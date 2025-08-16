@@ -40,22 +40,22 @@ public class User implements Serializable {
     private LocalDateTime createdAt;
 
     // Clothes와 관계 1:N
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @ToString.Exclude
     private List<Clothing> clothes;
 
     // Cody와 관계
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @ToString.Exclude
     private List<Cody> cody;
 
     // Comments와 관계
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @ToString.Exclude
     private List<Comment> comments;
 
     // Likes와 관계
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @ToString.Exclude
     private List<Like> likes;
 
