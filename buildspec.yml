@@ -31,19 +31,27 @@ phases:
       - ./gradlew --version
 
       - echo "Starting Gradle build..."
-      # 빌드 실패 시 중단되도록 수정
       - ./gradlew clean build -x test --no-daemon --stacktrace
 
-      - echo "Verifying JAR file creation..."
-      - ls -al build/libs/
+      - echo "=== 상세 파일 시스템 디버깅 ==="
+      - pwd
+      - ls -la
+      - echo "--- build 디렉토리 확인 ---"
+      - ls -la build/ || echo "build 디렉토리 없음"
+      - echo "--- build/libs 디렉토리 확인 ---"
+      - ls -la build/libs/ || echo "build/libs 디렉토리 없음"
+      - echo "--- 모든 .jar 파일 찾기 ---"
+      - find . -name "*.jar" -type f -ls
+      - echo "--- 파일 권한 확인 ---"
+      - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar || echo "JAR 파일 없음"
+
       - |
         if [ ! -f "build/libs/webservice-0.0.1-SNAPSHOT.jar" ]; then
           echo "ERROR: JAR file not found!"
+          echo "Available files in build/libs:"
+          ls -la build/libs/ || echo "No build/libs directory"
           exit 1
         fi
-
-      - echo "JAR file verified successfully"
-      - find . -name "*.jar" -type f
 
       - echo "=== AWS and ECR setup ==="
       - REGION="${AWS_REGION:-ap-northeast-2}"
@@ -62,12 +70,21 @@ phases:
     commands:
       - echo "=== Docker image build and push ==="
 
-      # Docker 빌드 전 파일 존재 재확인
-      - echo "Final verification before Docker build..."
+      - echo "=== Docker 빌드 직전 최종 확인 ==="
+      - pwd
+      - ls -la
+      - echo "--- Dockerfile 내용 확인 ---"
+      - cat Dockerfile
+      - echo "--- build/libs 디렉토리 재확인 ---"
+      - ls -la build/libs/
+      - echo "--- JAR 파일 재확인 ---"
       - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
+      - file build/libs/webservice-0.0.1-SNAPSHOT.jar
 
-      - echo "Building Docker image..."
-      - docker build -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
+      - echo "=== Docker 빌드 컨텍스트 확인 ==="
+      - echo "Docker 빌드 시작..."
+      - docker build --no-cache -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} . || (echo "Docker build failed, showing detailed info:" && ls -la && ls -la build/libs/ && exit 1)
+
       - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
       - echo "Pushing image to ECR..."
       - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
