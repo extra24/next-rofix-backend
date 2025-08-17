@@ -43,17 +43,24 @@ public class ClothingController {
 
     // 옷 생성
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ClothingDTO> createClothing(
+    public ResponseEntity<?> createClothing(
             @RequestPart("clothing") ClothingRequestDTO dto,
             @RequestPart(value = "file", required = false) MultipartFile file,
             HttpSession session
-    ) throws IOException {
+    ) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            log.warn("옷 업로드 시 인증되지 않은 사용자 접근");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
-        ClothingDTO saved = clothingService.createClothing(dto, file, currentUser.getUserId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        try {
+            ClothingDTO saved = clothingService.createClothing(dto, file, currentUser.getUserId());
+            log.info("옷 업로드 성공: userId={}, clothingTitle={}", currentUser.getUserId(), dto.getTitle());
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (Exception e) {
+            log.error("옷 업로드 실패: userId={}, clothingTitle={}, error={}", currentUser.getUserId(), dto.getTitle(), e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("옷 업로드 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 
     // 옷 삭제
