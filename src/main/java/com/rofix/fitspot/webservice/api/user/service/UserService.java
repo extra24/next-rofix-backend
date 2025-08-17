@@ -61,6 +61,21 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
+    // 퍼스널컬러만 업데이트
+    public User updatePersonalColor(Long userId, String newPersonalColor) {
+        if (newPersonalColor == null || newPersonalColor.isEmpty()) {
+            throw new IllegalArgumentException("퍼스널컬러는 필수 입력 항목입니다.");
+        }
+
+        return userRepository.findById(userId)
+                .map(user -> {
+                    user.setPersonalColor(newPersonalColor);
+                    return userRepository.save(user);
+                })
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+    }
+
     // 회원 탈퇴
     @Transactional
     public void deleteUser(Long userId, HttpSession session) {
