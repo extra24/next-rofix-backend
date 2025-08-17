@@ -2,35 +2,47 @@ version: 0.2
 
 env:
   variables:
-    REPOSITORY_URI: 077672914621.dkr.ecr.ap-northeast-2.amazonaws.com
+    AWS_REGION: ap-northeast-2
     IMAGE_NAME: fitspot-app
     IMAGE_TAG: latest
-    IMAGE_URI: 077672914621.dkr.ecr.ap-northeast-2.amazonaws.com/fitspot-app:latest
+    CONTAINER_NAME: app1
 
 phases:
   pre_build:
     commands:
       - echo "Gradle 실행 권한 설정"
-      - dos2unix ./gradlew      # Windows → Unix 포맷 변환
+      - sed -i 's/\r$//' ./gradlew
       - chmod +x ./gradlew      # 실행 권한 부여
       - echo "Gradle build 시작"
       - ./gradlew clean build
       - ls build/libs
       - echo "ECR 로그인 중..."
-      - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${REPOSITORY_URI}
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+      - REPOSITORY_URI=${ECR_REGISTRY}/${IMAGE_REPO_NAME}
+      - aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
 
   build:
     commands:
       - echo "Docker 이미지 빌드"
-      - docker build -t ${IMAGE_NAME} .
-      - docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_URI}
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+      - REPOSITORY_URI=${ECR_REGISTRY}/${IMAGE_REPO_NAME}
+      - docker build -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
+      - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
+      - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
+      - IMAGE_URI=${REPOSITORY_URI}:${IMAGE_TAG}
 
   post_build:
     commands:
       - echo "Docker 이미지 푸시"
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+      - REPOSITORY_URI=${ECR_REGISTRY}/${IMAGE_REPO_NAME}
+      - IMAGE_URI=${REPOSITORY_URI}:${IMAGE_TAG}
       - docker push ${IMAGE_URI}
       - echo "imagedefinitions.json 생성"
-      - printf '[{"name":"app1","imageUri":"%s"}]' $IMAGE_URI > imagedefinitions.json
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$IMAGE_URI" > imagedefinitions.json
       - echo "생성된 imagedefinitions.json 내용:"
       - cat imagedefinitions.json
 
