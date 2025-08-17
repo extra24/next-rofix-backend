@@ -10,6 +10,8 @@ env:
 phases:
   pre_build:
     commands:
+      - echo "Gradle 실행 권한 설정"
+      - chmod +x ./gradlew
       - echo "Gradle build 시작"
       - ./gradlew clean build
       - ls build/libs
