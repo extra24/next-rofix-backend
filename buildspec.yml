@@ -28,21 +28,22 @@ phases:
       - ls -la ./gradlew
 
       - echo "Checking Gradle version..."
-      - ./gradlew --version || echo "Gradle version check failed"
+      - ./gradlew --version
 
       - echo "Starting Gradle build..."
-      - ./gradlew clean build -x test --no-daemon --stacktrace || echo "Build failed, continuing..."
+      # 빌드 실패 시 중단되도록 수정
+      - ./gradlew clean build -x test --no-daemon --stacktrace
 
-      - echo "Checking if build succeeded..."
+      - echo "Verifying JAR file creation..."
+      - ls -al build/libs/
       - |
         if [ ! -f "build/libs/webservice-0.0.1-SNAPSHOT.jar" ]; then
-          echo "JAR file not found, trying build without tests and checks..."
-          ./gradlew clean assemble --no-daemon --stacktrace
+          echo "ERROR: JAR file not found!"
+          exit 1
         fi
 
-      - echo "Build artifacts check..."
-      - ls -al build/libs/ || echo "No build/libs directory found"
-      - find . -name "*.jar" -type f | head -5
+      - echo "JAR file verified successfully"
+      - find . -name "*.jar" -type f
 
       - echo "=== AWS and ECR setup ==="
       - REGION="${AWS_REGION:-ap-northeast-2}"
@@ -60,6 +61,11 @@ phases:
   build:
     commands:
       - echo "=== Docker image build and push ==="
+
+      # Docker 빌드 전 파일 존재 재확인
+      - echo "Final verification before Docker build..."
+      - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
+
       - echo "Building Docker image..."
       - docker build -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
       - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
