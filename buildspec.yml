@@ -28,37 +28,29 @@ phases:
 
   build:
     commands:
-      - set -e
       - echo "Checking Gradle version..."
       - ./gradlew --version
-
       - echo "Starting Gradle build..."
       - ./gradlew clean build -x test --no-daemon --stacktrace
-
       - echo "=== Build verification ==="
       - pwd
       - ls -la
       - echo "--- build directory check ---"
-      - ls -la build/ || echo "No build directory"
+      - ls -la build/
       - echo "--- build/libs directory check ---"
-      - ls -la build/libs/ || echo "No build/libs directory"
-      - echo "--- Find all .jar files ---"
+      - ls -la build/libs/
+      - echo "--- Find all jar files ---"
       - find . -name "*.jar" -type f -ls
-
-      # JAR 파일 존재 확인
       - echo "=== JAR file verification ==="
       - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
       - file build/libs/webservice-0.0.1-SNAPSHOT.jar
-
       - echo "=== AWS and ECR setup ==="
       - REGION="${AWS_REGION:-ap-northeast-2}"
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
       - REPOSITORY_URI="${ECR_REGISTRY}/${IMAGE_REPO_NAME}"
-
       - echo "ECR login..."
       - aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
-
       - echo "=== Docker build preparation ==="
       - echo "Current working directory:"
       - pwd
@@ -68,10 +60,8 @@ phases:
       - cat Dockerfile
       - echo "JAR file final check:"
       - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
-
       - echo "=== Docker build ==="
       - docker build --no-cache -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
-
       - echo "=== Docker tag and push ==="
       - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
       - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
