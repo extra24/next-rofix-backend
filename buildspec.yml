@@ -2,80 +2,43 @@ version: 0.2
 
 env:
   variables:
-    AWS_REGION: ap-northeast-2
+    AWS_DEFAULT_REGION: ap-northeast-2
+    ACCOUNT_ID: 077672914621
     IMAGE_REPO_NAME: fitspot-app
-    IMAGE_TAG: latest
+    CODEBUILD_RESOLVED_SOURCE_VERSION: latest
     CONTAINER_NAME: app1
     GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048m"
     _JAVA_OPTIONS: "-Xmx1536m"
 
 phases:
-  install:
-    runtime-versions:
-      java: corretto17
-    commands:
-      - echo "Installing dependencies..."
-      - java -version
-      - docker --version
-
   pre_build:
     commands:
-      - echo "Gradle setup and build start"
-      - echo "Normalizing gradlew permissions..."
-      - sed -i 's/\r$//' ./gradlew
-      - chmod +x ./gradlew
-      - ls -la ./gradlew
-
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      # ECR 로그인
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - IMAGE_TAG=$CODEBUILD_RESOLVED_SOURCE_VERSION
   build:
     commands:
-      - echo "Checking Gradle version..."
-      - ./gradlew --version
-      - echo "Starting Gradle build..."
-      - ./gradlew clean build -x test --no-daemon --stacktrace
-      - echo "Build verification"
-      - pwd
-      - ls -la
-      - echo "build directory check"
-      - ls -la build/
-      - echo "build/libs directory check"
-      - ls -la build/libs/
-      - echo "Find all jar files"
-      - find . -name "*.jar" -type f -ls
-      - echo "JAR file verification"
-      - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
-      - file build/libs/webservice-0.0.1-SNAPSHOT.jar
-      - echo "AWS and ECR setup"
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-      - REPOSITORY_URI="${ECR_REGISTRY}/${IMAGE_REPO_NAME}"
-      - echo "ECR login..."
-      - aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "$ECR_REGISTRY"
-      - echo "Docker build preparation"
-      - echo "Current working directory:"
-      - pwd
-      - echo "Docker build context files:"
-      - ls -la
-      - echo "Dockerfile contents:"
-      - cat Dockerfile
-      - echo "JAR file final check:"
-      - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
-      - echo "Docker build"
-      - docker build -t ${IMAGE_REPO_NAME} .
-      - echo "Docker tag and push"
-      - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
-      - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
-      - IMAGE_URI=${REPOSITORY_URI}:${IMAGE_TAG}
-
+      - echo Build started on `date`
+      - echo Building the application with Gradle...
+      - ./gradlew clean build -x test
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
-      - echo "Generate imagedefinitions.json"
-      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$IMAGE_URI" > imagedefinitions.json
-      - echo "Generated imagedefinitions.json:"
-      - cat imagedefinitions.json
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 
 artifacts:
-  files:
-    - imagedefinitions.json
+  files: imagedefinitions.json
+
 
 cache:
   paths:
