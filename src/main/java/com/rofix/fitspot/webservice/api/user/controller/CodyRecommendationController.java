@@ -33,20 +33,6 @@ public class CodyRecommendationController {
     ) {
         User currentUser = (User) session.getAttribute("user");
 
-        // ===== 로컬 개발용 가짜 세션 코드 (커밋 전 삭제 필요) =====
-        if (currentUser == null) {
-            // 프로파일이 local이거나 개발 환경인 경우 가짜 사용자 생성
-            String activeProfile = System.getProperty("spring.profiles.active", "local");
-            if ("local".equals(activeProfile) || "dev".equals(activeProfile)) {
-                log.info("로컬 개발 환경에서 가짜 사용자 세션 생성");
-                currentUser = createFakeUser();
-                session.setAttribute("user", currentUser);
-            } else {
-                log.warn("코디 추천 시 인증되지 않은 사용자 접근");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-        }
-        // ===== 가짜 세션 코드 끝 =====
 
         log.info("날씨 기반 코디 추천 요청 - 날씨: {}, 사용자: {}, 퍼스널컬러: {}, 강제생성: {}",
                 weather, currentUser.getUserId(), personalColor, force);
@@ -83,17 +69,4 @@ public class CodyRecommendationController {
 
         return ResponseEntity.ok(response);
     }
-
-    // ===== 로컬 개발용 가짜 사용자 생성 메서드 (커밋 전 삭제 필요) =====
-    /**
-     * 로컬 개발용 가짜 사용자 생성
-     */
-    private User createFakeUser() {
-        User fakeUser = new User();
-        fakeUser.setUserId(1L);
-        fakeUser.setNickname("테스트유저");
-        fakeUser.setEmail("test@example.com");
-        return fakeUser;
-    }
-    // ===== 가짜 사용자 생성 메서드 끝 =====
 }

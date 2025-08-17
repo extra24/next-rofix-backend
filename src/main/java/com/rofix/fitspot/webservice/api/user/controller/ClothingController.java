@@ -33,18 +33,6 @@ public class ClothingController {
     public ResponseEntity<List<ClothingDTO>> getMyClothes(HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
 
-        // ===== 로컬 개발용 가짜 세션 코드 (커밋 전 삭제 필요) =====
-        if (currentUser == null) {
-            String activeProfile = System.getProperty("spring.profiles.active", "local");
-            if ("local".equals(activeProfile) || "dev".equals(activeProfile)) {
-                log.info("로컬 개발 환경에서 가짜 사용자 세션 생성 (옷장 조회)");
-                currentUser = createFakeUser();
-                session.setAttribute("user", currentUser);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-        }
-        // ===== 가짜 세션 코드 끝 =====
 
         // 서비스 메서드를 세션 기반으로 호출하도록 변경
         List<ClothingDTO> clothesList = clothingService.getClothesByUserID(currentUser.getUserId());
@@ -59,20 +47,6 @@ public class ClothingController {
             HttpSession session
     ) {
         User currentUser = (User) session.getAttribute("user");
-
-        // ===== 로컬 개발용 가짜 세션 코드 (커밋 전 삭제 필요) =====
-        if (currentUser == null) {
-            String activeProfile = System.getProperty("spring.profiles.active", "local");
-            if ("local".equals(activeProfile) || "dev".equals(activeProfile)) {
-                log.info("로컬 개발 환경에서 가짜 사용자 세션 생성 (옷 업로드)");
-                currentUser = createFakeUser();
-                session.setAttribute("user", currentUser);
-            } else {
-                log.warn("옷 업로드 시 인증되지 않은 사용자 접근");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-            }
-        }
-        // ===== 가짜 세션 코드 끝 =====
 
         try {
             ClothingDTO saved = clothingService.createClothing(dto, file, currentUser.getUserId());
@@ -91,17 +65,4 @@ public class ClothingController {
         clothingService.deleteClothing(clothingId);
         return ResponseEntity.noContent().build();
     }
-
-    // ===== 로컬 개발용 가짜 사용자 생성 메서드 (커밋 전 삭제 필요) =====
-    /**
-     * 로컬 개발용 가짜 사용자 생성
-     */
-    private User createFakeUser() {
-        User fakeUser = new User();
-        fakeUser.setUserId(1L);
-        fakeUser.setNickname("테스트유저");
-        fakeUser.setEmail("test@example.com");
-        return fakeUser;
-    }
-    // ===== 가짜 사용자 생성 메서드 끝 =====
 }
