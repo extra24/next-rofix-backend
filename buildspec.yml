@@ -27,7 +27,7 @@ phases:
       - echo "Docker 이미지 푸시"
       - docker push ${IMAGE_URI}
       - echo "imagedefinitions.json 생성"
-      - echo '[{"name":"app1","imageUri":"'${IMAGE_URI}'"}]' > imagedefinitions.json
+      - printf '[{"name":"app1","imageUri":"%s"}]' $IMAGE_URI > imagedefinitions.json
 
 artifacts:
   files:
