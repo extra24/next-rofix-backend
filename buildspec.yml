@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    REPOSITORY_URI: 077672914621.dkr.ecr.ap-northeast-2.amazonaws.com/fitspot-app
+    REPOSITORY_URI: 077672914621.dkr.ecr.ap-northeast-2.amazonaws.com
     IMAGE_NAME: fitspot-app
     IMAGE_TAG: latest
     IMAGE_URI: 077672914621.dkr.ecr.ap-northeast-2.amazonaws.com/fitspot-app:latest
@@ -11,7 +11,8 @@ phases:
   pre_build:
     commands:
       - echo "Gradle 실행 권한 설정"
-      - chmod +x ./gradlew
+      - dos2unix ./gradlew      # Windows → Unix 포맷 변환
+      - chmod +x ./gradlew      # 실행 권한 부여
       - echo "Gradle build 시작"
       - ./gradlew clean build
       - ls build/libs
