@@ -3,55 +3,94 @@ version: 0.2
 env:
   variables:
     AWS_REGION: ap-northeast-2
-    IMAGE_REPO_NAME: fitspot-app   # ECR 리포지토리 이름 (한 곳으로 통일)
+    IMAGE_REPO_NAME: fitspot-app
     IMAGE_TAG: latest
-    CONTAINER_NAME: app1           # ECS 태스크 정의의 container name과 정확히 동일
+    CONTAINER_NAME: app1
+    # Gradle 메모리 설정 추가
+    GRADLE_OPTS: "-Xmx2048m -XX:MaxPermSize=512m"
+    # Java 힙 메모리 설정
+    _JAVA_OPTIONS: "-Xmx2048m"
 
 phases:
+  install:
+    runtime-versions:
+      java: corretto17  # 또는 corretto11, corretto8 등 프로젝트에 맞는 버전
+      docker: 20
+    commands:
+      - echo "Installing dependencies..."
+      - java -version
+      - ./gradlew --version || echo "gradlew not executable yet"
+
   pre_build:
     commands:
       - set -euo pipefail
-      - echo "Normalize gradlew & build"
-      - sed -i 's/\r$//' ./gradlew || true
-      - chmod +x ./gradlew
-      - ./gradlew clean build
-      - ls -al build/libs || true
+      - echo "=== Gradle 설정 및 빌드 시작 ==="
 
-      - echo "Resolve account/registry"
+      # gradlew 권한 및 줄바꿈 문자 정리
+      - echo "Normalizing gradlew permissions and line endings..."
+      - dos2unix ./gradlew || sed -i 's/\r$//' ./gradlew || true
+      - chmod +x ./gradlew
+      - ls -la ./gradlew
+
+      # Gradle 버전 확인
+      - echo "Checking Gradle version..."
+      - ./gradlew --version
+
+      # 상세한 빌드 로그와 함께 실행
+      - echo "Starting Gradle build with detailed logging..."
+      - ./gradlew clean build --info --stacktrace --no-daemon
+
+      # 빌드 결과 확인
+      - echo "Build artifacts check..."
+      - ls -al build/libs/ || echo "No build/libs directory found"
+      - find . -name "*.jar" -type f || echo "No JAR files found"
+
+      # AWS 계정 및 ECR 설정
+      - echo "=== AWS 및 ECR 설정 ==="
       - REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-ap-northeast-2}}"
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
       - REPOSITORY_URI="${ECR_REGISTRY}/${IMAGE_REPO_NAME}"
-      - echo "DEBUG REGION=$REGION"
-      - echo "DEBUG ACCOUNT_ID=$ACCOUNT_ID"
-      - echo "DEBUG ECR_REGISTRY=$ECR_REGISTRY"
-      - echo "DEBUG REPOSITORY_URI=$REPOSITORY_URI"
+      - echo "REGION=$REGION"
+      - echo "ACCOUNT_ID=$ACCOUNT_ID"
+      - echo "ECR_REGISTRY=$ECR_REGISTRY"
+      - echo "REPOSITORY_URI=$REPOSITORY_URI"
       - aws --version
 
+      # ECR 로그인 (재시도 로직)
       - |
-        echo "ECR login (retry up to 5)"
+        echo "ECR 로그인 시도 (최대 5회 재시도)..."
         for i in 1 2 3 4 5; do
-          PASS=$(aws ecr get-login-password --region "$REGION") || true
-          if [ -n "${PASS:-}" ] && [ ${#PASS} -gt 100 ]; then
-            echo "$PASS" | docker login --username AWS --password-stdin "$ECR_REGISTRY" && break
+          echo "로그인 시도 $i/5"
+          if aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"; then
+            echo "ECR 로그인 성공!"
+            break
+          else
+            echo "로그인 실패 (시도 $i/5). 3초 후 재시도..."
+            sleep 3
           fi
-          echo "login failed (attempt $i). retry in 3s..."
-          sleep 3
+          if [ $i -eq 5 ]; then
+            echo "ECR 로그인 최종 실패"
+            exit 1
+          fi
         done
 
   build:
     commands:
-      - echo "Docker build / tag / push"
+      - echo "=== Docker 이미지 빌드 및 푸시 ==="
+      - echo "Docker 이미지 빌드 중..."
       - docker build -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
-      - docker tag  ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
+      - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
+      - echo "ECR에 이미지 푸시 중..."
       - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
       - IMAGE_URI=${REPOSITORY_URI}:${IMAGE_TAG}
-      - echo "DEBUG IMAGE_URI=$IMAGE_URI"
+      - echo "최종 이미지 URI: $IMAGE_URI"
 
   post_build:
     commands:
-      - echo "Generate imagedefinitions.json for ${CONTAINER_NAME}"
+      - echo "=== imagedefinitions.json 생성 ==="
       - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$IMAGE_URI" > imagedefinitions.json
+      - echo "생성된 imagedefinitions.json:"
       - cat imagedefinitions.json
 
 artifacts:
@@ -61,3 +100,4 @@ artifacts:
 cache:
   paths:
     - '/root/.gradle/**/*'
+    - '/root/.m2/**/*'
