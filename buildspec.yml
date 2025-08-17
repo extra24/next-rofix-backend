@@ -13,6 +13,7 @@ env:
 phases:
   pre_build:
     commands:
+      - set -x
       - echo Logging in to Amazon ECR...
       - aws --version
       # ECR 로그인
