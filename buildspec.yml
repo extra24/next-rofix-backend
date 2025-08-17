@@ -28,6 +28,7 @@ phases:
 
   build:
     commands:
+      - set -e
       - echo "Checking Gradle version..."
       - ./gradlew --version
 
@@ -45,20 +46,9 @@ phases:
       - find . -name "*.jar" -type f -ls
 
       # JAR 파일 존재 확인
-      - |
-        JAR_FILE="build/libs/webservice-0.0.1-SNAPSHOT.jar"
-        if [ ! -f "$JAR_FILE" ]; then
-          echo "ERROR: JAR file not found at $JAR_FILE"
-          echo "Available files in build/libs:"
-          ls -la build/libs/ || echo "No build/libs directory"
-          echo "Searching for any JAR files:"
-          find . -name "*.jar" -type f
-          exit 1
-        else
-          echo "SUCCESS: JAR file found at $JAR_FILE"
-          ls -la "$JAR_FILE"
-          file "$JAR_FILE"
-        fi
+      - echo "=== JAR file verification ==="
+      - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
+      - file build/libs/webservice-0.0.1-SNAPSHOT.jar
 
       - echo "=== AWS and ECR setup ==="
       - REGION="${AWS_REGION:-ap-northeast-2}"
