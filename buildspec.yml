@@ -27,6 +27,8 @@ phases:
       - chmod +x ./gradlew
       - ls -la ./gradlew
 
+  build:
+    commands:
       - echo "Checking Gradle version..."
       - ./gradlew --version
 
@@ -66,8 +68,6 @@ phases:
       - echo "ECR login attempt..."
       - aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
-  build:
-    commands:
       - echo "=== Docker image build and push ==="
 
       - echo "=== Docker 빌드 직전 최종 확인 ==="
