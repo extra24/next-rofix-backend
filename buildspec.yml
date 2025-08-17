@@ -6,46 +6,38 @@ env:
     IMAGE_REPO_NAME: fitspot-app
     IMAGE_TAG: latest
     CONTAINER_NAME: app1
-    # Gradle 메모리 설정 추가
     GRADLE_OPTS: "-Xmx2048m -XX:MaxPermSize=512m"
-    # Java 힙 메모리 설정
     _JAVA_OPTIONS: "-Xmx2048m"
 
 phases:
   install:
     runtime-versions:
-      java: corretto17  # Java 11을 사용하는 경우, Java 8이면 corretto8
+      java: corretto17
       docker: 20
     commands:
       - echo "Installing dependencies..."
       - java -version
-      - ./gradlew --version || echo "gradlew not executable yet"
 
   pre_build:
     commands:
       - set -euo pipefail
       - echo "=== Gradle 설정 및 빌드 시작 ==="
 
-      # gradlew 권한 및 줄바꿈 문자 정리
       - echo "Normalizing gradlew permissions and line endings..."
-      - dos2unix ./gradlew || sed -i 's/\r$//' ./gradlew || true
+      - sed -i 's/\r$//' ./gradlew || true
       - chmod +x ./gradlew
       - ls -la ./gradlew
 
-      # Gradle 버전 확인
       - echo "Checking Gradle version..."
       - ./gradlew --version
 
-      # 상세한 빌드 로그와 함께 실행
       - echo "Starting Gradle build with detailed logging..."
       - ./gradlew clean build --info --stacktrace --no-daemon
 
-      # 빌드 결과 확인
       - echo "Build artifacts check..."
       - ls -al build/libs/ || echo "No build/libs directory found"
       - find . -name "*.jar" -type f || echo "No JAR files found"
 
-      # AWS 계정 및 ECR 설정
       - echo "=== AWS 및 ECR 설정 ==="
       - REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-ap-northeast-2}}"
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -57,23 +49,8 @@ phases:
       - echo "REPOSITORY_URI=$REPOSITORY_URI"
       - aws --version
 
-      # ECR 로그인 (재시도 로직)
       - echo "ECR 로그인 시도..."
-      - |
-        for i in 1 2 3 4 5; do
-          echo "로그인 시도 $i/5"
-          if aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"; then
-            echo "ECR 로그인 성공!"
-            break
-          else
-            echo "로그인 실패 (시도 $i/5). 3초 후 재시도..."
-            sleep 3
-          fi
-          if [ $i -eq 5 ]; then
-            echo "ECR 로그인 최종 실패"
-            exit 1
-          fi
-        done
+      - aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
   build:
     commands:
@@ -84,7 +61,7 @@ phases:
       - echo "ECR에 이미지 푸시 중..."
       - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
       - IMAGE_URI=${REPOSITORY_URI}:${IMAGE_TAG}
-      - echo "최종 이미지 URI: $IMAGE_URI"
+      - echo "최종 이미지 URI=$IMAGE_URI"
 
   post_build:
     commands:
