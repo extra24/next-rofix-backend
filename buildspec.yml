@@ -12,7 +12,7 @@ env:
 phases:
   install:
     runtime-versions:
-      java: corretto8
+      java: corretto17
     commands:
       - echo "Installing dependencies..."
       - java -version
@@ -34,9 +34,10 @@ phases:
       - ./gradlew clean build -x test --no-daemon --stacktrace || echo "Build failed, continuing..."
 
       - echo "Checking if build succeeded..."
-      - if [ ! -f "build/libs/webservice-0.0.1-SNAPSHOT.jar" ]; then
-        echo "JAR file not found, trying build without tests and checks..."
-        ./gradlew clean assemble --no-daemon --stacktrace
+      - |
+        if [ ! -f "build/libs/webservice-0.0.1-SNAPSHOT.jar" ]; then
+          echo "JAR file not found, trying build without tests and checks..."
+          ./gradlew clean assemble --no-daemon --stacktrace
         fi
 
       - echo "Build artifacts check..."
