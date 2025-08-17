@@ -14,7 +14,7 @@ env:
 phases:
   install:
     runtime-versions:
-      java: corretto17  # 또는 corretto11, corretto8 등 프로젝트에 맞는 버전
+      java: corretto17  # Java 11을 사용하는 경우, Java 8이면 corretto8
       docker: 20
     commands:
       - echo "Installing dependencies..."
@@ -58,8 +58,8 @@ phases:
       - aws --version
 
       # ECR 로그인 (재시도 로직)
+      - echo "ECR 로그인 시도..."
       - |
-        echo "ECR 로그인 시도 (최대 5회 재시도)..."
         for i in 1 2 3 4 5; do
           echo "로그인 시도 $i/5"
           if aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"; then
