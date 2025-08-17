@@ -8,7 +8,6 @@ env:
     CODEBUILD_RESOLVED_SOURCE_VERSION: latest
     CONTAINER_NAME: app1
     GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048m"
-    _JAVA_OPTIONS: "-Xmx1536m"
 
 phases:
   pre_build:
