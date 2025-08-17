@@ -21,7 +21,6 @@ phases:
   pre_build:
     commands:
       - echo "=== Gradle setup and build start ==="
-
       - echo "Normalizing gradlew permissions..."
       - sed -i 's/\r$//' ./gradlew || true
       - chmod +x ./gradlew
@@ -35,24 +34,30 @@ phases:
       - echo "Starting Gradle build..."
       - ./gradlew clean build -x test --no-daemon --stacktrace
 
-      - echo "=== 상세 파일 시스템 디버깅 ==="
+      - echo "=== Build verification ==="
       - pwd
       - ls -la
-      - echo "--- build 디렉토리 확인 ---"
-      - ls -la build/ || echo "build 디렉토리 없음"
-      - echo "--- build/libs 디렉토리 확인 ---"
-      - ls -la build/libs/ || echo "build/libs 디렉토리 없음"
-      - echo "--- 모든 .jar 파일 찾기 ---"
+      - echo "--- build directory check ---"
+      - ls -la build/ || echo "No build directory"
+      - echo "--- build/libs directory check ---"
+      - ls -la build/libs/ || echo "No build/libs directory"
+      - echo "--- Find all .jar files ---"
       - find . -name "*.jar" -type f -ls
-      - echo "--- 파일 권한 확인 ---"
-      - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar || echo "JAR 파일 없음"
 
+      # JAR 파일 존재 확인
       - |
-        if [ ! -f "build/libs/webservice-0.0.1-SNAPSHOT.jar" ]; then
-          echo "ERROR: JAR file not found!"
+        JAR_FILE="build/libs/webservice-0.0.1-SNAPSHOT.jar"
+        if [ ! -f "$JAR_FILE" ]; then
+          echo "ERROR: JAR file not found at $JAR_FILE"
           echo "Available files in build/libs:"
           ls -la build/libs/ || echo "No build/libs directory"
+          echo "Searching for any JAR files:"
+          find . -name "*.jar" -type f
           exit 1
+        else
+          echo "SUCCESS: JAR file found at $JAR_FILE"
+          ls -la "$JAR_FILE"
+          file "$JAR_FILE"
         fi
 
       - echo "=== AWS and ECR setup ==="
@@ -60,36 +65,28 @@ phases:
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
       - REPOSITORY_URI="${ECR_REGISTRY}/${IMAGE_REPO_NAME}"
-      - echo "REGION=$REGION"
-      - echo "ACCOUNT_ID=$ACCOUNT_ID"
-      - echo "ECR_REGISTRY=$ECR_REGISTRY"
-      - echo "REPOSITORY_URI=$REPOSITORY_URI"
 
-      - echo "ECR login attempt..."
+      - echo "ECR login..."
       - aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
-      - echo "=== Docker image build and push ==="
-
-      - echo "=== Docker 빌드 직전 최종 확인 ==="
+      - echo "=== Docker build preparation ==="
+      - echo "Current working directory:"
       - pwd
+      - echo "Docker build context files:"
       - ls -la
-      - echo "--- Dockerfile 내용 확인 ---"
+      - echo "Dockerfile contents:"
       - cat Dockerfile
-      - echo "--- build/libs 디렉토리 재확인 ---"
-      - ls -la build/libs/
-      - echo "--- JAR 파일 재확인 ---"
+      - echo "JAR file final check:"
       - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
-      - file build/libs/webservice-0.0.1-SNAPSHOT.jar
 
-      - echo "=== Docker 빌드 컨텍스트 확인 ==="
-      - echo "Docker 빌드 시작..."
-      - docker build --no-cache -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} . || (echo "Docker build failed, showing detailed info:" && ls -la && ls -la build/libs/ && exit 1)
+      - echo "=== Docker build ==="
+      - docker build --no-cache -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
 
+      - echo "=== Docker tag and push ==="
       - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
-      - echo "Pushing image to ECR..."
       - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
       - IMAGE_URI=${REPOSITORY_URI}:${IMAGE_TAG}
-      - echo "Final image URI=$IMAGE_URI"
+      - echo "Final image URI: $IMAGE_URI"
 
   post_build:
     commands:
