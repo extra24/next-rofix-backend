@@ -8,7 +8,7 @@ WORKDIR /app
 RUN echo "Checking build context..." && ls -la /
 
 # JAR 파일 복사
-COPY build/libs/webservice-0.0.1-SNAPSHOT.jar fitspot.jar
+COPY ./build/libs/webservice-0.0.1-SNAPSHOT.jar fitspot.jar
 
 # 복사된 파일 확인
 RUN ls -la /app/
