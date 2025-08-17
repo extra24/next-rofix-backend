@@ -8,7 +8,6 @@ import com.rofix.fitspot.webservice.api.user.repository.CodyClothesRepository;
 import com.rofix.fitspot.webservice.api.user.repository.CodyRepository;
 import com.rofix.fitspot.webservice.api.user.util.ColorMatchingUtil;
 import lombok.extern.slf4j.Slf4j;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -23,6 +23,7 @@ import java.util.*;
 public class CodyRecommendationService {
 
     private static final int MAX_CODY_COUNT = 3;
+    private static final int MAX_COMBINATIONS = 6;
 
     @Autowired
     private ClothingRepository clothingRepository;
@@ -160,7 +161,7 @@ public class CodyRecommendationService {
      * 신발 옵션 가져오기
      */
     private List<Clothing> getShoeOptions(List<Clothing> shoes) {
-        return shoes.isEmpty() ? Arrays.asList((Clothing) null) : shoes;
+        return shoes.isEmpty() ? List.of((Clothing) null) : shoes;
     }
 
     /**
@@ -409,7 +410,6 @@ public class CodyRecommendationService {
     /**
      * 날씨 타입 열거형
      */
-    @Getter
     private enum WeatherType {
         RAIN("비 오는 날씨에 적합한"),
         COLD("추운 날씨에 따뜻한"),
@@ -423,6 +423,9 @@ public class CodyRecommendationService {
             this.description = description;
         }
 
+        public String getDescription() {
+            return description;
+        }
 
         public boolean matches(String weather) {
             return this.name().equalsIgnoreCase(weather);
