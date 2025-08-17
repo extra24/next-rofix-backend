@@ -63,6 +63,30 @@ public class UserController {
         }
     }
 
+    // 퍼스널컬러만 수정
+    @PutMapping("/personalColor")
+    public ResponseEntity<?> updatePersonalColor(HttpSession session,
+                                                 @RequestBody Map<String, String> payload) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return new ResponseEntity<>("로그인 정보가 없습니다.", HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            String newPersonalColor = payload.get("personalColor");
+            User updatedUser = userService.updatePersonalColor(user.getUserId(), newPersonalColor);
+            session.setAttribute("user", updatedUser);
+
+            UserDTO updatedUserDto = UserMapper.toDTO(updatedUser);
+            return ResponseEntity.ok(updatedUserDto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("퍼스널컬러 업데이트에 실패했습니다.");
+        }
+    }
+
+
     // 회원 탈퇴
     @DeleteMapping
     public ResponseEntity<?> deleteMyInfo(HttpSession session) {
