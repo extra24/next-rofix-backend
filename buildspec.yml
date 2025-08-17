@@ -20,9 +20,9 @@ phases:
 
   pre_build:
     commands:
-      - echo "=== Gradle setup and build start ==="
+      - echo "Gradle setup and build start"
       - echo "Normalizing gradlew permissions..."
-      - sed -i 's/\r$//' ./gradlew || true
+      - sed -i 's/\r$//' ./gradlew
       - chmod +x ./gradlew
       - ls -la ./gradlew
 
@@ -32,26 +32,26 @@ phases:
       - ./gradlew --version
       - echo "Starting Gradle build..."
       - ./gradlew clean build -x test --no-daemon --stacktrace
-      - echo "=== Build verification ==="
+      - echo "Build verification"
       - pwd
       - ls -la
-      - echo "--- build directory check ---"
+      - echo "build directory check"
       - ls -la build/
-      - echo "--- build/libs directory check ---"
+      - echo "build/libs directory check"
       - ls -la build/libs/
-      - echo "--- Find all jar files ---"
+      - echo "Find all jar files"
       - find . -name "*.jar" -type f -ls
-      - echo "=== JAR file verification ==="
+      - echo "JAR file verification"
       - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
       - file build/libs/webservice-0.0.1-SNAPSHOT.jar
-      - echo "=== AWS and ECR setup ==="
+      - echo "AWS and ECR setup"
       - REGION="${AWS_REGION:-ap-northeast-2}"
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
       - REPOSITORY_URI="${ECR_REGISTRY}/${IMAGE_REPO_NAME}"
       - echo "ECR login..."
       - aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
-      - echo "=== Docker build preparation ==="
+      - echo "Docker build preparation"
       - echo "Current working directory:"
       - pwd
       - echo "Docker build context files:"
@@ -60,17 +60,16 @@ phases:
       - cat Dockerfile
       - echo "JAR file final check:"
       - ls -la build/libs/webservice-0.0.1-SNAPSHOT.jar
-      - echo "=== Docker build ==="
+      - echo "Docker build"
       - docker build --no-cache -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
-      - echo "=== Docker tag and push ==="
+      - echo "Docker tag and push"
       - docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
       - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
       - IMAGE_URI=${REPOSITORY_URI}:${IMAGE_TAG}
-      - echo "Final image URI: $IMAGE_URI"
 
   post_build:
     commands:
-      - echo "=== Generate imagedefinitions.json ==="
+      - echo "Generate imagedefinitions.json"
       - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$IMAGE_URI" > imagedefinitions.json
       - echo "Generated imagedefinitions.json:"
       - cat imagedefinitions.json
