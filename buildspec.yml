@@ -13,10 +13,10 @@ phases:
   install:
     runtime-versions:
       java: corretto8
-      docker: 20
     commands:
       - echo "Installing dependencies..."
       - java -version
+      - docker --version
 
   pre_build:
     commands:
