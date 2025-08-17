@@ -12,7 +12,7 @@ env:
 phases:
   install:
     runtime-versions:
-      java: corretto17
+      java: corretto8
       docker: 20
     commands:
       - echo "Installing dependencies..."
