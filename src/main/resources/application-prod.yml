@@ -7,10 +7,10 @@ spring:
     allowed-methods: GET, POST, PUT, DELETE, OPTIONS
 
   datasource:
-    url: jdbc:mysql://next-db.c74828wmikhx.ap-northeast-2.rds.amazonaws.com:3306/rofix?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://fitspot-db.c74828wmikhx.ap-northeast-2.rds.amazonaws.com:3306/fitspot?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: admin
-    password: :<~2?A3d?*r]Z$[w-mUh2O~(YkWR
+    password: "|(08P~><LFdo.vsY_~<]n~x04pO."
   jpa:
     defer-data-source-initialization: true
     hibernate:
@@ -22,13 +22,14 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
         default_schema: next
 
-  session:
-    store-type: redis
-
-  redis:
-    host: ${REDIS_HOST}
-    port: ${REDIS_PORT:6379}
-    ssl: true
+#  session:
+#    store-type: redis
+#    timeout: 3600
+#
+#  redis:
+#    host: fitspot-redis-cache-moypae.serverless.apn2.cache.amazonaws.com:6379
+#    port: 6379
+#    ssl: true
 
 management:
   endpoints:
