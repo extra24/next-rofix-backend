@@ -7,10 +7,10 @@ spring:
     allowed-methods: GET, POST, PUT, DELETE, OPTIONS
 
   datasource:
-    url: jdbc:mysql://fitspot-db.c74828wmikhx.ap-northeast-2.rds.amazonaws.com:3306/fitspot?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    url: ${SPRING_DATASOURCE_URL}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: admin
-    password: "|(08P~><LFdo.vsY_~<]n~x04pO."
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     defer-data-source-initialization: true
     hibernate:
